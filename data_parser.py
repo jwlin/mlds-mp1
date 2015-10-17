@@ -1,12 +1,12 @@
 # vim: set ts=4 sw=4 et: -*- coding: utf-8 -*-
-
+ 
 import itertools
 import random
 import time
 import theano
 import numpy as np
-
-
+ 
+ 
 class DataParser:
     sample = {}  # e.g. {'mzmb0_sx356_40': [83.17422, -10.78858, -19.54186, 14.11323, ...], ...}
     label = {}  # e.g. {'mzmb0_sx356_40': 'ae', ... }
@@ -14,12 +14,12 @@ class DataParser:
     label_map = {}  # e.g. {'ae': 'ae', 'cl': 'sil', ...}
     dimension_x = 0
     dimension_y = 0
-
+ 
     @classmethod
     def load(cls, sample_file, label_file, label_map_file):
         t_start = time.time()
         print 'loading data...'
-
+ 
         with open(sample_file, 'r') as f:
             for line in f:
                 line = line.replace('\n', '')
@@ -30,14 +30,14 @@ class DataParser:
                     attr.append(float(attr_str))
                 cls.sample[sample_id] = attr
         cls.dimension_x = len(cls.sample.itervalues().next())
-
+ 
         with open(label_file, 'r') as f:
             for line in f:
                 line = line.replace('\n', '')
                 token = line.split(',')
                 sample_id = token[0]
                 cls.label[sample_id] = token[1]
-            
+             
         with open(label_map_file, 'r') as f:
             for line in f:
                 line = line.replace('\n', '')
@@ -46,10 +46,10 @@ class DataParser:
                 cls.label_map[label_48] = token[1]
                 cls.label_index.append(label_48)
         cls.dimension_y = len(cls.label_index)
-        
+         
         t_end = time.time()
         print 'data loaded. loading time: %f sec' % (t_end - t_start)
-
+ 
     @classmethod
     def test(cls):
         print 'data integrity check...'
@@ -83,8 +83,8 @@ class DataParser:
         assert y_t[-1].count(1) == 1
         #print cls.label_index[y_t[-1].index(1)]
         print 'make_batch() test done'
-        
-
+         
+ 
     @classmethod
     def make_batch(cls, batch_size):  # randomly divide samples and labels into groups of batch_size
         assert not (len(cls.sample) % batch_size), 'can not divide samples with ' + str(batch_size)
@@ -112,7 +112,7 @@ class DataParser:
             whole_x_batch.append(mini_x_batch)
             whole_y_batch.append(mini_y_batch)
         assert len(sample_ids)==0
-            
+             
         '''
         print len(whole_x_batch), len(whole_y_batch)
         for e in whole_x_batch[-2]:
@@ -123,7 +123,7 @@ class DataParser:
         t_end = time.time()
         print 'batch made. elapsed time: %f sec' % (t_end - t_start)
         return whole_x_batch, whole_y_batch, batch_num
-
+ 
     @classmethod
     def load_test_data(cls, fname):
         t_start = time.time()
@@ -144,7 +144,7 @@ class DataParser:
         t_end = time.time()
         print 'test data loaded. loading time: %f sec' % (t_end - t_start)
         return test_matrix, test_id
-
+ 
     @classmethod
     def load_validation_data(cls, fname, lab_fname):
         t_start = time.time()
@@ -177,7 +177,7 @@ class DataParser:
         t_end = time.time()
         print 'validation data loaded. loading time: %f sec' % (t_end - t_start)
         return validation_matrix, validation_y
-    
+     
     @classmethod
     def check(cls, fname1, fname2):
         map1 = {}
@@ -198,33 +198,98 @@ class DataParser:
             if map1[key] == map2[key]:
                 count += 1
         return count, len(map1)
-
+ 
     @classmethod
-    def load_matrix(cls, m, n=None, fname=None):
+    def load_matrix(cls, m=None, n=None, name=None, fname=None):
         if fname:
-            # with open(fname, w):
+            with open(fname, 'r') as f:
+                if name:
+                    w_all = []
+                    line = f.readline() 
+                    token = line.split(' ')
+                    for i in xrange(len(token)):
+                        if token[i] == name:
+                            data = f.read()
+                            data_token = data.split('\n')
+                            matrix_data = data_token[2*i-1].split(',')
+                            num_data = data_token[2*i-2].split(',')
+                            data_x = int(num_data[0])
+                            data_y = int('0'+num_data[1][1:])
+                            if data_y != 0:
+                                #print(data_y)
+                                for x in range(data_x):
+                                    w = []
+                                    for y in range(data_y):
+                                       w.append(float(matrix_data[x*data_y+y]))
+                                    w_all.append(w)
+                            else:
+                                w = []
+                                for x in range(data_x):
+                                    w.append(float(matrix_data[x]))
+                                w_all = w
+                            return theano.shared(np.array(w_all),name)
+                else:
+                    w_all_matrix = []
+                    line = f.readline()
+                    token = line.split(' ')
+                    data = f.read()
+                    data_token = data.split('\n')			
+                    i=0					
+                    while i < len(token)-2:
+                        w_all = []
+                        #print(i)
+                        matrix_data = data_token[2*i+1].split(',')
+                        num_data = data_token[2*i].split(',')
+                        #print(data_token[2*i])
+                        data_x = int(num_data[0])
+                        data_y = int('0'+num_data[1][1:])
+                        if data_y != 0:
+                            #print(data_y)
+                            for x in range(data_x):
+                                w = []
+                                for y in range(data_y):
+                                   w.append(float(matrix_data[x*data_y+y]))
+                                w_all.append(w)
+                        else:
+                            w = []
+                            for x in range(data_x):
+                                w.append(float(matrix_data[x]))
+                            w_all = w
+                        w_all_matrix.append(theano.shared(np.array(w_all),token[i+1]))
+                        i+=1
+                return w_all_matrix            
+                            
+                                              
+				# with open(fname, w):
                 # load file into theano shared variablie
                 # return theano.shared(()).astype(np.float64) )
             pass
         else:
             if n:
-                return theano.shared( np.random.randn(m, n).astype(np.float64) )
+                return theano.shared( np.random.randn(m, n).astype(np.float64), name)
             else:
-                return theano.shared( np.random.randn(m).astype(np.float64) )
-
+                return theano.shared( np.random.randn(m).astype(np.float64), name)
+ 
     @classmethod
     def save_parameters(cls, parameters):
-        '''
+        
         # save parameters in a way that the data can be easily loaded by theano
-        np.set_printoptions(threshold=2**32)
+        #np.set_printoptions(threshold=2**32)
         with open('parameter.txt', 'w') as f:
-            f.write('parameters: w1, w2, w3, b1, b2, b3\n')
+            f.write('parameters: ')
             for p in parameters:
-                f.write(str(p.get_value().shape) + '\n')
-                f.write(str(p.get_value()) + '\n')
-        '''
-        pass
-
+                f.write( p.name +' ')
+            f.write('\n')
+            for p in parameters:
+                t = str(p.get_value().shape).replace("(",'')
+                t = str(t).replace(")",'')
+                f.write(t + '\n')
+                t = p.get_value().tolist()
+                t = str(t).replace("[",'')
+                t = str(t).replace("]",'')
+                f.write("%s\n" %t )
+        #pass
+ 
 if __name__ == '__main__':
     sample_file = 'mfcc/train-1.ark'  # separated by blank
     label_file = 'label/train-1.lab'  # separated by comma
@@ -233,7 +298,7 @@ if __name__ == '__main__':
     label_map_file = 'phones/48_39.map'  # separated by tab
     DataParser.load(sample_file, label_file, label_map_file)
     DataParser.test()
-    
+     
     #sample_size = 495
     #sample_test_id = 'mzmb0_sx86_215'
     matrix, ids = DataParser.load_test_data(sample_file)
@@ -245,6 +310,5 @@ if __name__ == '__main__':
     #print m2
     correct, all_record = DataParser.check(label_file, label_file)
     assert correct==all_record
-
+ 
     #DataParser.load_validation_data(sample_file, label_file)
-

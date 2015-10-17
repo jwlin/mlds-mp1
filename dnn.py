@@ -32,41 +32,34 @@ dim_x = DataParser.dimension_x
 dim_y_hat = DataParser.dimension_y
 batch_size = 10
 neuron_num = 32
-epoch_cycle = 20000
+epoch_cycle = 1
 learning_rate = 0.01
-learning_rate_decay = 1.0
-
-x = T.matrix('input', dtype='float64')  # matrix of dim_x * batch_size
-y_hat = T.matrix('reference', dtype='float64')  # matrix of dim_y_hat * batch_size
+learning_rate_decay = 0.9999
 
 # e.g. matrix 3*2 dot matrix 2*1 = matrix 3*1
 # [[1., 3.], [2., 2.], [3.,1.]] dot [[2], [1]] = [[5.], [6.], [7.]]
+x = T.matrix('input', dtype='float64')  # matrix of dim_x * batch_size
+y_hat = T.matrix('reference', dtype='float64')  # matrix of dim_y_hat * batch_size
 
-#w1 = theano.shared( np.random.randn(neuron_num, dim_x).astype(np.float64) )  # matrix of neurom_num * dim_x
-w1 = DataParser.load_matrix(neuron_num, dim_x)  # matrix of neurom_num * dim_x
-#b1 = theano.shared( np.random.randn(neuron_num).astype(np.float64) )  # matrix of neuron_num * 1
-b1 = DataParser.load_matrix(neuron_num)  # matrix of neuron_num * 1
-#w2 = theano.shared( np.random.randn(neuron_num, neuron_num).astype(np.float64) )  # matrix of neurom_num * neuron_num
-w2 = DataParser.load_matrix(neuron_num, neuron_num)  # matrix of neuron_num * neuron_num
-#b2 = theano.shared( np.random.randn(neuron_num).astype(np.float64) )  # matrix of neuron_num * 1
-b2 = DataParser.load_matrix(neuron_num)  # matrix of neuron_num * 1
-#w3 = theano.shared( np.random.randn(dim_y_hat, neuron_num).astype(np.float64) )  # matrix of dim_y_hat * neuron_num
-w3 = DataParser.load_matrix(dim_y_hat, neuron_num)  # matrix of matrix of dim_y_hat * neuron_num
-#b3 = theano.shared( np.random.randn(dim_y_hat).astype(np.float64) )  # matrix of dim_y_hat * 1
-b3 = DataParser.load_matrix(dim_y_hat)  # matrix of dim_y_hat * 1
+# load saved parameters
+#w1,w2,w3,b1,b2,b3 = DataParser.load_matrix(fname = 'parameter.txt')
+
+# if no saved parameters, generate them randomly
+w1 = DataParser.load_matrix(neuron_num, dim_x, name='w1')  # matrix of neurom_num * dim_x
+b1 = DataParser.load_matrix(neuron_num, name='b1')  # matrix of neuron_num * 1
+w2 = DataParser.load_matrix(neuron_num, neuron_num, name='w2')  # matrix of neuron_num * neuron_num
+b2 = DataParser.load_matrix(neuron_num, name = 'b2')  # matrix of neuron_num * 1
+w3 = DataParser.load_matrix(dim_y_hat, neuron_num , name = 'w3')  # matrix of matrix of dim_y_hat * neuron_num
+b3 = DataParser.load_matrix(dim_y_hat, name = 'b3')  # matrix of dim_y_hat * 1
 
 z1 = T.dot(w1, x) + b1.dimshuffle(0, 'x')
-#a1 = 1 / (1 + T.exp(-1 * z1))
 a1 = activation_func(z1, 'sigmoid')
 z2 = T.dot(w2, a1) + b2.dimshuffle(0, 'x')
-#a2 = 1 / (1 + T.exp(-1 * z2))
 a2 = activation_func(z2, 'sigmoid')
 z3 = T.dot(w3, a2) + b3.dimshuffle(0, 'x')
-#y = 1 / (1 + T.exp(-1 * z3))
 y = activation_func(z3, 'sigmoid')
 
 parameters = [w1, w2, w3, b1, b2, b3]
-#cost = T.sum((y-y_hat)**2) / batch_size
 cost = cost_func(y, y_hat, batch_size, 'euclidean')
 gradients = T.grad(cost, parameters)
 
@@ -74,7 +67,6 @@ def my_update(params, gradients):
 	global learning_rate
 	global learning_rate_decay
 	learning_rate *= learning_rate_decay
-	#mu = 0.00001
 	param_updates = [
 		(p, p-learning_rate*g) for p, g in izip(params, gradients)
 	]
@@ -85,12 +77,14 @@ train = theano.function(
 		outputs = cost,
 		updates = my_update(parameters, gradients),
 		)
+
 '''
 validate = theano.function(
 		inputs = [x, y_hat],
-		outputs = cost2,
+		outputs = cost,
 		)
 '''
+
 test = theano.function(
 		inputs = [x],
 		outputs = y,
@@ -109,7 +103,6 @@ for t in xrange(epoch_cycle):
 		current_cost += c_cost
 	current_cost /= batch_num
 	print 'current_cost', current_cost
-	#print 'validate_cost', validate(validation_data, validation_y_hat)/(batch_num*batch_size)
 	#current_validate_cost = validate(validation_set)
 	#print 'validate cost', current_validate_cost
 	#if current_validate_cost < validate_cost:
@@ -117,7 +110,7 @@ for t in xrange(epoch_cycle):
 	#else:
 	#	break
 
-test_data, test_id =DataParser.load_test_data(sample_file)
+test_data, test_id = DataParser.load_test_data(sample_file)
 result = test(test_data)
 result = list(result)
 result = map(list, zip(*result))  # transpose

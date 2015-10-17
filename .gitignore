@@ -56,6 +56,7 @@ docs/_build/
 # PyBuilder
 target/
 
+parameter.txt
 candidate*.txt
 result*.txt
 fbank/
