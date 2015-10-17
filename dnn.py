@@ -23,17 +23,18 @@ def cost_func(y, y_hat, batch_size, choice='euclidean'):
 
 t_start = time.time()
 
-sample_file = 'mfcc/train-1.ark'
-label_file = 'label/train-1.lab'
+sample_file = 'mfcc/train.ark'
+test_file = 'mfcc/test.ark'
+label_file = 'label/train.lab'
 label_map_file = 'phones/48_39.map'
 DataParser.load(sample_file, label_file, label_map_file)
-DataParser.test()
+#DataParser.test()
 dim_x = DataParser.dimension_x
 dim_y_hat = DataParser.dimension_y
-batch_size = 10
-neuron_num = 32
-epoch_cycle = 1
-learning_rate = 0.01
+batch_size = 21
+neuron_num = 64
+epoch_cycle = 2
+learning_rate = 0.0001
 learning_rate_decay = 0.9999
 
 # e.g. matrix 3*2 dot matrix 2*1 = matrix 3*1
@@ -53,11 +54,11 @@ w3 = DataParser.load_matrix(dim_y_hat, neuron_num , name = 'w3')  # matrix of ma
 b3 = DataParser.load_matrix(dim_y_hat, name = 'b3')  # matrix of dim_y_hat * 1
 
 z1 = T.dot(w1, x) + b1.dimshuffle(0, 'x')
-a1 = activation_func(z1, 'sigmoid')
+a1 = activation_func(z1, 'relu')
 z2 = T.dot(w2, a1) + b2.dimshuffle(0, 'x')
-a2 = activation_func(z2, 'sigmoid')
+a2 = activation_func(z2, 'relu')
 z3 = T.dot(w3, a2) + b3.dimshuffle(0, 'x')
-y = activation_func(z3, 'sigmoid')
+y = activation_func(z3, 'relu')
 
 parameters = [w1, w2, w3, b1, b2, b3]
 cost = cost_func(y, y_hat, batch_size, 'euclidean')
@@ -135,14 +136,13 @@ with open('result.txt', 'w') as f:
 
 correct, all_record = DataParser.check('result.txt', label_file)
 print 'correction rate: %i/ %i' %(correct, all_record)
-DataParser.save_parameters(parameters)
 
-'''
-solution_data, solution_id =DataParser.load_test_data('mfcc/test.ark')
+solution_data, solution_id = DataParser.load_test_data(test_file)
 solution = test(solution_data)
 solution = list(solution)
 solution = map(list, zip(*solution))  # transpose
 with open('solution.csv', 'w') as f:
+	f.write('Id,Prediction\n')
 	for i in xrange(len(solution)):
 		f.write(solution_id[i] + ',')
 		max_value = 0
@@ -152,7 +152,8 @@ with open('solution.csv', 'w') as f:
 				max_value = solution[i][j]
 				max_index = j
 		f.write(DataParser.label_map[DataParser.label_index[max_index]] + '\n')
-'''
+
+DataParser.save_parameters(parameters)
 
 t_end = time.time()
 print 'time elapsed: %f minutes' % ((t_end-t_start)/60.0)

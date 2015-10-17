@@ -57,6 +57,7 @@ docs/_build/
 target/
 
 parameter.txt
+solution.csv
 candidate*.txt
 result*.txt
 fbank/
