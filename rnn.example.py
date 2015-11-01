@@ -54,9 +54,9 @@ cost = T.sum( ( y_seq - y_hat )**2 )
 gradients = T.grad(cost,parameters)
 
 def MyUpdate(parameters,gradients):
-	mu =  np.float32(0.0001)
-	parameters_updates = [(p,p - mu * g) for p,g in izip(parameters,gradients) ] 
-	return parameters_updates
+    mu =  np.float32(0.0001)
+    parameters_updates = [(p,p - mu * g) for p,g in izip(parameters,gradients) ] 
+    return parameters_updates
 
 rnn_test = theano.function(
         inputs= [x_seq],
@@ -74,29 +74,22 @@ rnn_train = theano.function(
 
 x_seq, y_hat = TestParser.load()
 
-
-
-
-for i in range(1):
-    
+for i in xrange(1):
     for j in xrange(len(x_seq)):
         c_cost = rnn_train(x_seq[j],y_hat[j])/len(y_hat[j])
         print"iteration:", j, "cost:",  c_cost
         
-
+t_start = time.time()
 correct = 0
 all = 0
 max_index = 0
-t_start = time.time()
-label_index = TestParser.label.values()
 for i in xrange(len(x_seq)):
     y_a = rnn_test(x_seq[i])
     y_a = list(y_a)
-    for j in  xrange(len(y_a)):
+    for j in xrange(len(y_a)):
         y_a[j] = list(y_a[j])
-        max_index = y_a[j].index(max(y_a[j]))   
-        if TestParser.chr_keys[max_index] == label_index[all]:
-            correct+=1
+        max_index = y_a[j].index(max(y_a[j]))
+        if TestParser.chr_keys[max_index] == TestParser.label_ans[all]: correct+=1
         all+=1
 t_end = time.time()
 print "correct = ",correct ,"/",all ,t_end-t_start," sec." 
