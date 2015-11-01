@@ -33,8 +33,7 @@ def sigmoid(z):
         return 1/(1+T.exp(-z))
 
 def step(x_t,a_tm1,y_tm1):
-        a_t = sigmoid( T.dot(x_t,Wi) \
-                + T.dot(a_tm1,Wh) + bh )
+        a_t = sigmoid( T.dot(x_t,Wi) + T.dot(a_tm1,Wh) + bh )
         y_t = T.dot(a_t,Wo) + bo
         return a_t, y_t
 
@@ -69,7 +68,6 @@ rnn_train = theano.function(
         outputs=cost,
         updates=MyUpdate(parameters,gradients),
         allow_input_downcast=True
-
 )
 
 x_seq, y_hat = TestParser.load()
