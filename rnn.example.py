@@ -12,7 +12,7 @@ label_file = 'label/train.lab'
 label_map_file = 'phones/48_39.map'
 chr_map_file = '48_idx_chr.map_b'
 epoch_cycle = 1
-mu =  np.float32(0.001)
+mu =  np.float32(0.0001)
 TestParser.load(label_map_file, chr_map_file, label_file, post_file)
 
 # Number of units in the hidden (recurrent) layer
@@ -72,13 +72,15 @@ rnn_train = theano.function(
         updates=MyUpdate(parameters,gradients),
         allow_input_downcast=True
 )
-
+t_start = time.time()
 for i in xrange(epoch_cycle):
     for j in xrange(len(TestParser.x_seq)):
         c_cost = rnn_train(TestParser.x_seq[j], TestParser.y_hat[j])/len(TestParser.y_hat[j])
         print"iteration:", j, "cost:",  c_cost
     #print(i,'th epoch')
 TestParser.save_parameters(parameters)
+t_end = time.time()
+print 'time elapsed: %f minutes' % ((t_end-t_start)/60.0)
 
 result, test_id, ans = TestParser.load_test_data(post_file)
 t_start = time.time()
@@ -87,7 +89,7 @@ all = 0
 max_index = 0
 for i in xrange(len(result)):
     y_a = rnn_test(result[test_id[i]])
-    #y_a = TestParser.x_seq[test_id[i]]
+    #y_a = result[test_id[i]]
     y_a = list(y_a)
     for j in xrange(len(y_a)):
         y_a[j] = list(y_a[j])
