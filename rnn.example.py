@@ -27,7 +27,7 @@ y_hat = T.matrix('target')
 Wi = theano.shared(np.eye(N_INPUT,N_HIDDEN), name = 'wi')
 bh = theano.shared(np.zeros(N_HIDDEN), name = 'b2_g')
 Wo = theano.shared(np.eye(N_HIDDEN,N_OUTPUT), name='Wo')
-bo = theano.shared(np.zeros(N_OUTPUT, name='bo'))
+bo = theano.shared(np.zeros(N_OUTPUT), name='bo')
 Wh = theano.shared(np.eye(N_HIDDEN,N_HIDDEN), name='Wh')
 #Wi,bh,Wo,bo,Wh = TestParser.load_matrix(fname = "rnn_parameter.txt")
 '''
