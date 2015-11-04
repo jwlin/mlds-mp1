@@ -201,8 +201,8 @@ class TestParser:
                 f.write( p.name +' ')
             f.write('\n')
             for p in parameters:
-                t = str(p.get_value().shape).replace("(",'')
-                t = str(t).replace(")",'')
+                t = str(p.get_value().shape).replace("(",'').replace(")",'')
+                t = str(t).replace("L",'')
                 f.write(t + '\n')
                 t = p.get_value().tolist()
                 t = str(t).replace("[",'')
