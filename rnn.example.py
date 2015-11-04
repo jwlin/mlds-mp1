@@ -23,7 +23,13 @@ N_OUTPUT = TestParser.dimension_y
 x_seq = T.matrix('input')
 y_hat = T.matrix('target')
 
-Wi,bh,Wo,bo,Wh = TestParser.load_matrix(fname = "rnn_parameter.txt")
+
+Wi = theano.shared(np.eye(N_INPUT,N_HIDDEN), name = 'wi')
+bh = theano.shared(np.zeros(N_HIDDEN), name = 'b2_g')
+Wo = theano.shared(np.eye(N_HIDDEN,N_OUTPUT), name='Wo')
+bo = theano.shared(np.zeros(N_OUTPUT, name='bo'))
+Wh = theano.shared(np.eye(N_HIDDEN,N_HIDDEN), name='Wh')
+#Wi,bh,Wo,bo,Wh = TestParser.load_matrix(fname = "rnn_parameter.txt")
 '''
 Wi = TestParser.load_matrix(N_INPUT, N_HIDDEN, name='Wi')
 bh = TestParser.load_matrix(N_HIDDEN, name='bh')
@@ -36,8 +42,12 @@ parameters = [Wi,bh,Wo,bo,Wh]
 def sigmoid(z):
         return 1/(1+T.exp(-z))
 
+def ReLU(z):
+	return T.switch(z>0,z,0)
+
 def step(x_t,a_tm1,y_tm1):
-        a_t = sigmoid( T.dot(x_t,Wi) + T.dot(a_tm1,Wh) + bh )
+        #a_t = sigmoid( T.dot(x_t,Wi) + T.dot(a_tm1,Wh) + bh )
+        a_t = ReLU( T.dot(x_t,Wi) + T.dot(a_tm1,Wh) + bh )
         y_t = T.dot(a_t,Wo) + bo
         return a_t, y_t
 
