@@ -185,7 +185,7 @@ class TestParser:
             pass
         else:
             if n:
-                return theano.shared( np.random.uniform(-1,1,(m, n)).astype(np.float32), name)
+                return theano.shared( np.eye(m, n).astype(np.float32), name)
             else:
                 #return theano.shared( np.random.uniform(-1,1,(m)).astype(np.float32), name)
                 return theano.shared( np.zeros(m).astype(np.float32), name)
