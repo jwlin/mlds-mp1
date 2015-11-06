@@ -185,13 +185,12 @@ class TestParser:
                 return w_all_matrix                     
                 # with open(fname, w):
                 # load file into theano shared variablie
-                # return theano.shared( np().astype(np.float32) )
+                # return theano.shared( np().astype(theano.config.floatX) )
             pass
         else:
             if n:
                 return theano.shared( np.eye(m, n).astype(theano.config.floatX), name)
             else:
-                #return theano.shared( np.random.uniform(-1,1,(m)).astype(np.float32), name)
                 return theano.shared( np.zeros(m).astype(theano.config.floatX), name)
 
     @classmethod
