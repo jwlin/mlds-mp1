@@ -12,7 +12,6 @@ label_file = '../dataset/label/train.lab'
 label_map_file = '../dataset/phones/48_39.map'
 chr_map_file = '../dataset/48_idx_chr.map_b'
 epoch_cycle = 2
-#mu =  np.float32(0.00008)
 mu =  np.cast[theano.config.floatX](0.00008)
 TestParser.load(label_map_file, chr_map_file, label_file, post_file)
 
