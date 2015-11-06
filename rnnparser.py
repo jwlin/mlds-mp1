@@ -23,11 +23,15 @@ class TestParser:
         cls.label_keys = np.genfromtxt(label_map_file, usecols=0, dtype=str)
         for i in xrange(len(cls.label_keys)): cls.label_num[cls.label_keys[i]] = i
         label_raw_data = np.genfromtxt(label_map_file, usecols=[1],dtype=str)
-        cls.label_map = {key: row for key, row in zip(cls.label_keys, label_raw_data)}
+        #cls.label_map = {key: row for key, row in zip(cls.label_keys, label_raw_data)}  # not compatible with python 2.6.6
+        for key, row in zip(cls.label_keys, label_raw_data):
+            cls.label_map[key] = row
 
         cls.chr_keys = np.genfromtxt(chr_map_file, usecols=0, dtype=str)
         chr_raw_data = np.genfromtxt(chr_map_file, usecols=[1,2],dtype=None)
-        cls.chr_map = {key: row for key, row in zip(cls.chr_keys, chr_raw_data)}
+        #cls.chr_map = {key: row for key, row in zip(cls.chr_keys, chr_raw_data)}  # not compatible with python 2.6.6
+        for key, row in zip(cls.chr_keys, chr_raw_data):
+            cls.chr_map[key] = row
         
         with open(label_file, 'r') as f:
             for line in f:
@@ -73,7 +77,7 @@ class TestParser:
 
     @classmethod
     def load_test_data(cls, fname):
-    	print 'loading test data...'
+        print 'loading test data...'
         t_start = time.time()
         test_matrix={}
         test_id=[]
@@ -148,7 +152,7 @@ class TestParser:
                                 for x in range(data_x):
                                     w.append(float(matrix_data[x]))
                                 w_all = w
-                            return theano.shared(np.array(w_all).astype(np.float32),name)
+                            return theano.shared(np.array(w_all).astype(theano.config.floatX),name)
                 else:
                     w_all_matrix = []
                     line = f.readline()
@@ -176,19 +180,18 @@ class TestParser:
                             for x in range(data_x):
                                 w.append(float(matrix_data[x]))
                             w_all = w
-                        w_all_matrix.append(theano.shared(np.array(w_all).astype(np.float32),token[i+1]))
+                        w_all_matrix.append(theano.shared(np.array(w_all).astype(theano.config.floatX),token[i+1]))
                         i+=1
                 return w_all_matrix                     
                 # with open(fname, w):
                 # load file into theano shared variablie
-                # return theano.shared( np().astype(np.float32) )
+                # return theano.shared( np().astype(theano.config.floatX) )
             pass
         else:
             if n:
-                return theano.shared( np.eye(m, n).astype(np.float32), name)
+                return theano.shared( np.eye(m, n).astype(theano.config.floatX), name)
             else:
-                #return theano.shared( np.random.uniform(-1,1,(m)).astype(np.float32), name)
-                return theano.shared( np.zeros(m).astype(np.float32), name)
+                return theano.shared( np.zeros(m).astype(theano.config.floatX), name)
 
     @classmethod
     def save_parameters(cls, parameters):
@@ -208,4 +211,23 @@ class TestParser:
                 t = str(t).replace("[",'')
                 t = str(t).replace("]",'')
                 f.write("%s\n" %t )
-        #pass
+    
+    @classmethod
+    def trim(cls, seq):
+        # trim leading and tailing 'L' (sil)
+        while (seq.startswith('L')):
+            seq = seq[1:]
+        while (seq.endswith('L')):
+            seq = seq[:-1]
+        
+        # zip duplicate letters
+        zipped = ''
+        for i in xrange(len(seq)):
+            if i==0:
+                zipped = seq[i]
+            elif seq[i] == zipped[-1]:
+                continue
+            else:
+                zipped += seq[i]
+        return zipped
+
