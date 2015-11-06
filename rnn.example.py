@@ -43,8 +43,8 @@ def step(x_t,a_tm1,y_tm1):
     y_t = T.dot(a_t,Wo) + bo
     return a_t, y_t
 
-a_0 = theano.shared(np.zeros(N_HIDDEN).astype(np.float32))
-y_0 = theano.shared(np.zeros(N_OUTPUT).astype(np.float32))
+a_0 = theano.shared(np.zeros(N_HIDDEN).astype(theano.config.floatX))
+y_0 = theano.shared(np.zeros(N_OUTPUT).astype(theano.config.floatX))
 
 [a_seq,y_seq],_ = theano.scan(
     step,

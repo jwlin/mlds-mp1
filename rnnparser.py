@@ -148,7 +148,7 @@ class TestParser:
                                 for x in range(data_x):
                                     w.append(float(matrix_data[x]))
                                 w_all = w
-                            return theano.shared(np.array(w_all).astype(np.float32),name)
+                            return theano.shared(np.array(w_all).astype(theano.config.floatX),name)
                 else:
                     w_all_matrix = []
                     line = f.readline()
@@ -176,19 +176,19 @@ class TestParser:
                             for x in range(data_x):
                                 w.append(float(matrix_data[x]))
                             w_all = w
-                        w_all_matrix.append(theano.shared(np.array(w_all).astype(np.float32),token[i+1]))
+                        w_all_matrix.append(theano.shared(np.array(w_all).astype(theano.config.floatX),token[i+1]))
                         i+=1
                 return w_all_matrix                     
                 # with open(fname, w):
                 # load file into theano shared variablie
-                # return theano.shared( np().astype(np.float32) )
+                # return theano.shared( np().astype(theano.config.floatX) )
             pass
         else:
             if n:
-                return theano.shared( np.eye(m, n).astype(np.float32), name)
+                return theano.shared( np.eye(m, n).astype(theano.config.floatX), name)
             else:
-                #return theano.shared( np.random.uniform(-1,1,(m)).astype(np.float32), name)
-                return theano.shared( np.zeros(m).astype(np.float32), name)
+                #return theano.shared( np.random.uniform(-1,1,(m)).astype(theano.config.floatX), name)
+                return theano.shared( np.zeros(m).astype(theano.config.floatX), name)
 
     @classmethod
     def save_parameters(cls, parameters):
