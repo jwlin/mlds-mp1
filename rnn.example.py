@@ -119,7 +119,7 @@ for i in xrange(len(result)):
         predicted_label = TestParser.label_keys[max_index]
         solution_hw1.append( (frame_id, TestParser.label_map[predicted_label]) )
         phone_seq += TestParser.chr_map[ TestParser.label_map[predicted_label] ][1]
-        phone_seq = TestParser.trim(phone_seq)
+    phone_seq = TestParser.trim(phone_seq)
     solution_hw2.append( (frame, phone_seq) )
 
 with open('solution_hw1.csv', 'w') as f:
