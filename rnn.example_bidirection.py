@@ -11,10 +11,10 @@ test_file = '../dataset/posteriorgram/test2.post'
 label_file = '../dataset/label/train.lab'
 label_map_file = '../dataset/phones/48_39.map'
 chr_map_file = '../dataset/48_idx_chr.map_b'
-epoch_cycle = 5
+epoch_cycle = 1
 batch_size = 1
 #mu =  np.float32(0.00002)
-lr = theano.shared(np.float32(0.005))
+lr = theano.shared(np.float32(0.002))
 learning_rate_decay = 0.99999
 TestParser.load(label_map_file, chr_map_file, label_file, post_file)
 
@@ -121,7 +121,7 @@ count = 0
 max_index = 0
 
 for i in xrange(len(result)):
-    y_a = rnn_test(result[test_id[i]],result[test_id[i]])
+    y_a = rnn_test(result[test_id[i]],result[test_id[i]][::-1])
     y_a = list(y_a)
     for j in xrange(len(y_a)):
         y_a[j] = list(y_a[j])
