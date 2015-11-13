@@ -16,7 +16,23 @@ class TestParser:
     chr_keys = []
     dimension_x = 0
     dimension_y = 0
- 
+    
+    @classmethod
+    def batch(cls,batch_size):
+        
+        b = list(zip(cls.x_seq,cls.y_hat))
+        np.random.shuffle(b)
+        x,y = zip(*b)
+        batch_x =[]
+        batch_y =[]
+        temp_x = [x[i:i+batch_size] for i in xrange(0, len(x), batch_size)]
+        temp_y = [y[i:i+batch_size] for i in xrange(0, len(y), batch_size)]
+        for i in xrange(len(temp_x)):
+            
+            batch_x.append(np.vstack(c for c in temp_x[i]))
+            batch_y.append(np.vstack(c for c in temp_y[i]))
+        return batch_x,batch_y
+        
     @classmethod
     def load(cls, label_map_file, chr_map_file, label_file, post_file):
         t_start = time.time()
@@ -59,6 +75,7 @@ class TestParser:
 
                 attr = []
                 for attr_str in token[1:]: attr.append(float(attr_str))
+                #for attr_str in token[1:]: attr.append(np.exp(float(attr_str)))
                 cls.x_seq[id_index].append(attr)
                 cls.y_hat[id_index].append(y)
         cls.dimension_x = len(TestParser.x_seq[0][0])
@@ -101,6 +118,7 @@ class TestParser:
                     tmp_ans.append([])
 
                 attr = []
+                #for attr_str in token[1:]: attr.append(np.exp(float(attr_str)))
                 for attr_str in token[1:]: attr.append(float(attr_str))
                 tmp[id_index].append(attr)
                 test_matrix[frame] = tmp[id_index]
