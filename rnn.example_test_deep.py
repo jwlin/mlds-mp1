@@ -28,7 +28,7 @@ y_hat = T.matrix('target')
 x_seq2 = T.matrix('input')
 
 
-#Wi,bh,Wo,bo,Wh = TestParser.load_matrix(fname = "rnn_parameter.txt")
+#Wi,bh,Wo,bo,Wh,Wi2,bh2 = TestParser.load_matrix(fname = "rnn_parameter.txt")
 Wi = TestParser.load_matrix(N_INPUT, N_HIDDEN, name='Wi')
 bh = TestParser.load_matrix(N_HIDDEN, name='bh')
 Wo = TestParser.load_matrix(N_HIDDEN,N_OUTPUT, name='Wo')
