@@ -207,7 +207,10 @@ class TestParser:
             pass
         else:
             if n:
-                return theano.shared( np.eye(m, n).astype(theano.config.floatX), name)
+                if name == 'Wh':
+                    return theano.shared( np.eye(m, n).astype(theano.config.floatX), name)
+                else:
+                    return theano.shared( np.random.normal(0, 0.1, (m, n)).astype(theano.config.floatX), name)
             else:
                 return theano.shared( np.zeros(m).astype(theano.config.floatX), name)
 
