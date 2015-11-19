@@ -182,12 +182,22 @@ for i in xrange(len(result)):
     tmp_hw1.append(tmp)
 
 
+
 for i in xrange(len(tmp_hw1)):
     tmp_hw1[i][0]='sil'
+    tmp_hw1[i][1]='sil'
+    tmp_hw1[i][2]='sil'
     tmp_hw1[i][len(tmp_hw1[i])-1]='sil'
-    for j  in xrange(1, len(tmp_hw1[i])-1):
-        if tmp_hw1[i][j]!=tmp_hw1[i][j+1] and tmp_hw1[i][j]!=tmp_hw1[i][j-1]:
-            tmp_hw1[i][j]=tmp_hw1[i][j-1]
+    tmp_hw1[i][len(tmp_hw1[i])-2]='sil'
+    last = tmp_hw1[i][1]
+    for j  in xrange(3, len(tmp_hw1[i])-2):
+        cur = tmp_hw1[i][j]
+        if cur!=last:
+            if cur==tmp_hw1[i][j+1] and cur==tmp_hw1[i][j+2]:
+                last = cur
+            else: #tmp_hw1[i][j]=''
+                tmp_hw1[i][j]=last
+
 tmp_count=0
 with open('solution_hw1_trim.csv', 'w') as f:
     f.write('Id,Prediction\n')
@@ -195,24 +205,26 @@ with open('solution_hw1_trim.csv', 'w') as f:
         for j in xrange(len(tmp_hw1[i])):
             f.write(solution_hw1[tmp_count][0] + ',' + tmp_hw1[i][j] + '\n')
             tmp_count+=1
+
 with open('solution_hw2_trim.csv', 'w') as f:
     f.write('id,phone_sequence\n')
     for i in xrange(len(tmp_hw1)):
-    	frame = test_id[i]
+        frame = test_id[i]
         tmp_seq=''
         for j in xrange(len(tmp_hw1[i])):
+            if tmp_hw1[i][j] == '': continue
             tmp_seq += TestParser.chr_map[ tmp_hw1[i][j] ][1]
         tmp_seq = TestParser.trim(tmp_seq)
         f.write(frame + ',' + tmp_seq + '\n')
+
+
 
 with open('solution_hw1.csv', 'w') as f:
     f.write('Id,Prediction\n')
     for i in xrange(len(solution_hw1)):
         f.write(solution_hw1[i][0] + ',' + solution_hw1[i][1] + '\n')
-
 with open('solution_hw2.csv', 'w') as f:
     f.write('id,phone_sequence\n')
     for i in xrange(len(solution_hw2)):
         f.write(solution_hw2[i][0] + ',' + solution_hw2[i][1] + '\n')
-
 
