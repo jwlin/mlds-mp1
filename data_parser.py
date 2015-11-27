@@ -112,7 +112,37 @@ class DataParser:
             whole_x_batch.append(mini_x_batch)
             whole_y_batch.append(mini_y_batch)
         assert len(sample_ids)==0
-             
+        
+    @classmethod
+    def make_batch2(cls, batch_size):  # randomly divide samples and labels into groups of batch_size
+        assert not (len(cls.sample) % batch_size), 'can not divide samples with ' + str(batch_size)
+        t_start = time.time()
+        print 'making batch...'
+        sample_ids = list(cls.sample.keys())
+        random.shuffle(sample_ids)
+        whole_x_batch = []
+        whole_y_batch = []
+        batch_num = int(len(cls.sample)/batch_size)
+        for i in xrange(batch_num):
+            mini_x_batch = []
+            mini_y_batch = [ [0]*batch_size for _ in xrange(cls.dimension_y) ] #make 2D zeros array (dim_y, batch_size)
+            #mini_y_batch = []
+            #for j in xrange(cls.dimension_y):
+            #    mini_y_batch.append([0]*batch_size)
+            for k in xrange(batch_size):
+                sample_id = sample_ids.pop()
+                mini_x_batch.append(cls.sample[sample_id])
+
+                label = cls.label[sample_id]
+                label_index = cls.label_index.index(label)
+                mini_y_batch[label_index][k]=1
+
+            whole_x_batch.append(map(list, zip(*mini_x_batch))) # transpose
+            whole_y_batch.append(mini_y_batch)
+        assert len(sample_ids)==0
+        t_end = time.time()
+        print 'batch made. elapsed time: %f sec' % (t_end - t_start)
+        return whole_x_batch, whole_y_batch, batch_num
         '''
         print len(whole_x_batch), len(whole_y_batch)
         for e in whole_x_batch[-2]:
