@@ -112,7 +112,18 @@ class DataParser:
             whole_x_batch.append(mini_x_batch)
             whole_y_batch.append(mini_y_batch)
         assert len(sample_ids)==0
-        
+        #print(len(mini_x_batch), len(mini_x_batch[0]))
+        '''
+        print len(whole_x_batch), len(whole_y_batch)
+        for e in whole_x_batch[-2]:
+            print e
+        for e in whole_y_batch[-2]:
+            print e
+        '''
+        t_end = time.time()
+        print 'batch made. elapsed time: %f sec' % (t_end - t_start)
+        return whole_x_batch, whole_y_batch, batch_num
+
     @classmethod
     def make_batch2(cls, batch_size):  # randomly divide samples and labels into groups of batch_size
         assert not (len(cls.sample) % batch_size), 'can not divide samples with ' + str(batch_size)
@@ -140,16 +151,6 @@ class DataParser:
             whole_x_batch.append(map(list, zip(*mini_x_batch))) # transpose
             whole_y_batch.append(mini_y_batch)
         assert len(sample_ids)==0
-        t_end = time.time()
-        print 'batch made. elapsed time: %f sec' % (t_end - t_start)
-        return whole_x_batch, whole_y_batch, batch_num
-        '''
-        print len(whole_x_batch), len(whole_y_batch)
-        for e in whole_x_batch[-2]:
-            print e
-        for e in whole_y_batch[-2]:
-            print e
-        '''
         t_end = time.time()
         print 'batch made. elapsed time: %f sec' % (t_end - t_start)
         return whole_x_batch, whole_y_batch, batch_num
