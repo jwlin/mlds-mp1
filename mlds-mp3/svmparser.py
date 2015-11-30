@@ -1,6 +1,6 @@
 import numpy as np
 import time
-import theano
+#import theano
 import random
 
 class TestParser:
@@ -132,7 +132,7 @@ class TestParser:
         print 'test data loaded. loading time: %f sec' % (t_end - t_start)
         return test_matrix, test_id, ans
 
-    @classmethod
+    '''@classmethod
     def load_matrix(cls, m=None, n=None, name=None, fname=None):
         print('init parameters')
         if fname:
@@ -204,7 +204,7 @@ class TestParser:
                     return theano.shared( np.random.normal(0, 0.1, (m, n)).astype(theano.config.floatX), name)
             else:
                 return theano.shared( np.zeros(m).astype(theano.config.floatX), name)
-
+    '''
     @classmethod
     def save_parameters(cls, parameters):
         # save parameters in a way that the data can be easily loaded by theano
