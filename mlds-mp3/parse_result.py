@@ -53,6 +53,20 @@ with open (result_file) as f:
         while (seq.endswith('L')):
             seq = seq[:-1]
         
+        
+        
+        for i in xrange(1, len(seq)-1):
+            if seq[i]!=seq[i+1] and seq[i]!=seq[i-1]:
+                seq[i]=seq[i-1]
+        for i in xrange(1, len(seq)-2):
+            if seq[i] == seq [i+1]:
+                if seq[i] != seq[i-1] and seq[i] != seq[i+2]:
+                    seq[i] = seq[i-1]
+                    seq[i+1] = seq[i-1]
+            elif seq[i] != seq[i+1]:
+                pass
+                
+                
         # zip duplicate letters
         zipped = ''
         for i in xrange(len(seq)):
