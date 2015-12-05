@@ -21,7 +21,7 @@ class Hmm:
     #dim_x = 0
     dim_y = 0
     @classmethod
-    def loadgetprob(cls,label_map_file, chr_map_file, label_file, post_file,filename):
+    def loadgetprob(cls,label_map_file, chr_map_file, label_file, post_file):
     	t_start = time.time()
         print 'load data...'
         cls.label_keys = np.genfromtxt(label_map_file, usecols=0, dtype=str)
@@ -37,8 +37,8 @@ class Hmm:
         cls.dim_y = len(cls.label_keys)
 
         with open(label_file, 'r') as f:
-            count = np.zeros(shape=(cls.dim_y, cls.dim_y),	dtype=float)
-            cls.trnstnprb = np.zeros(shape=(cls.dim_y, cls.dim_y),	dtype=float)
+            count = np.zeros(shape=(cls.dim_y, cls.dim_y), dtype=float)
+            cls.trnstnprb = np.zeros(shape=(cls.dim_y, cls.dim_y), dtype=float)
             cls.startprb = np.zeros(shape=(cls.dim_y), dtype=float)
             cls.endprb = np.zeros(shape=(cls.dim_y), dtype=float)
             cls.initprb = np.zeros(shape=(cls.dim_y), dtype=float)
@@ -81,12 +81,7 @@ class Hmm:
                     if(countcol[i]!=0): 
                         if(count[i][j]!=0):cls.trnstnprb[i][j] = count[i][j]/countcol[i] #i-->j
 
-            cls.trnstnprb = np.log(cls.trnstnprb)
-            cls.startprb = np.log(cls.startprb)
-            cls.endprb = np.log(cls.endprb)
-            cls.initprb = np.log(cls.initprb)
-            #print cls.trnstnprb
-        with open(filename,'r') as f:
+        with open(post_file,'r') as f:
             frame = ''
             temp_em = []
             for line in f:
@@ -103,16 +98,31 @@ class Hmm:
                     temp_em = []
                     frame = token[0][0:index]
                 for i in xrange(1, len(token)):
-                	temp.append(float(token[i]))
-                    #if(float(token[i])!=0):
-                    #    temp.append(float(token[i]))
+                    temp.append(float(token[i]))
                 temp_em.append(temp)
             cls.emsnprb[frame] = np.log(temp_em)
+        
+        cls.trnstnprb = np.log(cls.trnstnprb)
+        cls.startprb = np.log(cls.startprb)
+        cls.endprb = np.log(cls.endprb)
+        cls.initprb = np.log(cls.initprb)
         t_end = time.time()
         print 'data loaded. loading time: %f sec' % (t_end - t_start)
 
+    # how to use this function??????(what are the input of X&Y)
+    @classmethod    
+    def add_log(cls, X, Y):
+        if(Y>X):
+            temp = X;
+            X=Y;
+            Y=temp;
+
+        diff = Y-X
+        if(diff < -100.0): return X;
+        else: return X+np.log(np.exp(diff)+1.0);
+
     @classmethod
-    def viterbi(cls):
+    def viterbi(cls, setting):
     	t_start = time.time()
         print 'do viterbi...'
         mat = {}
@@ -121,6 +131,7 @@ class Hmm:
         p_ans = {}
         path_ans = {}
         nrow = cls.dim_y
+        cls.trnstnprb /= setting
         for test_id in cls.emsnprb:
             ncol = len(cls.emsnprb[test_id])
             mat[test_id] = np.zeros(shape=(nrow,ncol), dtype=float) # prob
@@ -128,18 +139,29 @@ class Hmm:
             
             # Fill in first column
             for	i in xrange(nrow): # step1
+                #mat[test_id][i][0] = Hmm.add_log(cls.initprb[i], cls.emsnprb[test_id][0][i])
+                #mat[test_id][i][0] = Hmm.add_log(mat[test_id][i][0], cls.startprb[i])
                 mat[test_id][i][0] = cls.initprb[i]+cls.emsnprb[test_id][0][i]+cls.startprb[i] # mat[phone][step]
             
             for j in xrange(1, ncol):
                 for i in xrange(nrow):
-                    ep = cls.emsnprb[test_id][j][i]/1.5 # emission probs
+                    ep = cls.emsnprb[test_id][j][i]# emission probs
                     if ep == 0: continue
+                    '''
+                    mxi=0
+                    mx = Hmm.add_log(mat[test_id][0][j-1], cls.trnstnprb[0][i])
+                    mx = Hmm.add_log(mx, ep)
+                    if j == ncol-1: mx = Hmm.add_log(mx, cls.endprb[i])'''
                     if j == ncol-1:
                         mx, mxi = mat[test_id][0][j-1] + cls.trnstnprb[0][i] + ep + cls.endprb[i], 0
                     else:
                         mx, mxi = mat[test_id][0][j-1] + cls.trnstnprb[0][i] + ep, 0
 
                     for i2 in xrange(1, nrow):
+                        '''
+                        pr = Hmm.add_log(mat[test_id][i2][j-1], cls.trnstnprb[i2][i])
+                        pr = Hmm.add_log(pr, ep)
+                        if j == ncol-1: pr = Hmm.add_log(pr, cls.endprb[i])'''
                         if j == ncol-1:
                             pr = mat[test_id][i2][j-1] + cls.trnstnprb[i2][i] + ep + cls.endprb[i]
                         else:
@@ -157,7 +179,6 @@ class Hmm:
 
             # Backtrace                        
             i,p,path = omxi[test_id],[omxi[test_id]],[cls.label_keys[omxi[test_id]]]
-            #print omxi
             for j in xrange(ncol-1, 0, -1):
                 i = matTb[test_id][i][j]
                 p.append(i)
@@ -169,22 +190,7 @@ class Hmm:
         return omx, p_ans, path_ans
 
     @classmethod
-    def check(cls, fname):
-        t_start = time.time()
-        correct = 0
-        count = 0
-        with open(fname, 'r') as f:
-            for line in f:
-                line = line.replace('\n', '')
-                token = line.split(',')
-                if cls.label[token[0]] == token[1]: correct += 1
-                count += 1
-        t_end = time.time()
-        print 'checking: %f sec' % (t_end - t_start)
-        return correct, count
-
-    @classmethod
-    def check2(cls, path):
+    def check(cls, path):
         t_start = time.time()
         correct = 0
         count = 0
@@ -215,3 +221,74 @@ class Hmm:
             else:
                 zipped += seq[i]
         return zipped
+
+    @classmethod
+    def save_result(cls, path, setting):
+        t_start = time.time()
+        hw1_sol={}
+        with open('solution_hw1_'+str(setting)+'.csv', 'w') as f:
+            f.write('Id,Prediction\n')
+            for i in path:
+                hw1_sol[i] = []
+                for p in xrange(len(path[i])):
+                    frame = i + '_' + str(p+1)
+                    label = Hmm.label_map[str(path[i][p])]
+                    hw1_sol[i].append(label)
+                    f.write( frame + ',' + label + '\n')
+
+        with open('solution_hw2_'+str(setting)+'.csv', 'w') as f:
+            f.write('id,phone_sequence\n')
+            for frame in hw1_sol:
+                tmp_seq=''
+                for j in xrange(len(hw1_sol[frame])):
+                    tmp_seq += str(Hmm.chr_map[ hw1_sol[frame][j] ][1])
+                tmp_seq = Hmm.trim(tmp_seq)
+                f.write(frame + ',' + tmp_seq + '\n')
+        
+        # smooth
+        '''for i in hw1_sol:
+            hw1_sol[i][0]='sil'
+            hw1_sol[i][1]='sil'
+            hw1_sol[i][len(hw1_sol[i])-1]='sil'
+            hw1_sol[i][len(hw1_sol[i])-2]='sil'
+            last = 'sil'
+            for j in xrange(2, len(hw1_sol[i])-2):
+                cur = hw1_sol[i][j]
+                if cur!=last:
+                    if cur==hw1_sol[i][j+1]:
+                        last = cur
+                    else:
+                        hw1_sol[i][j]=last'''
+        '''for i in hw1_sol:
+            hw1_sol[i][0]='sil'
+            hw1_sol[i][1]='sil'
+            hw1_sol[i][2]='sil'
+            hw1_sol[i][len(hw1_sol[i])-1]='sil'
+            hw1_sol[i][len(hw1_sol[i])-2]='sil'
+            hw1_sol[i][len(hw1_sol[i])-3]='sil'
+            last = 'sil'
+            for j in xrange(3, len(hw1_sol[i])-3):
+                cur = hw1_sol[i][j]
+                if cur!=last:
+                    if cur==hw1_sol[i][j+1] and cur==hw1_sol[i][j+2]:
+                        last = cur
+                    else:
+                        hw1_sol[i][j]=last
+
+        with open('solution_hw1_smooth_'+str(setting)+'.csv', 'w') as f:
+            f.write('Id,Prediction\n')
+            for i in hw1_sol:
+                for p in xrange(len(hw1_sol[i])):
+                    frame = i + '_' + str(p+1)
+                    f.write( frame + ',' + hw1_sol[i][p] + '\n')
+
+        with open('solution_hw2_smooth_'+str(setting)+'.csv', 'w') as f:
+            f.write('id,phone_sequence\n')
+            for frame in hw1_sol:
+                tmp_seq=''
+                for j in xrange(len(hw1_sol[frame])):
+                    tmp_seq += Hmm.chr_map[ hw1_sol[frame][j] ][1]
+                tmp_seq = Hmm.trim(tmp_seq)
+                f.write(frame + ',' + tmp_seq + '\n')'''
+        t_end = time.time()
+        print 'result save: %f sec' % (t_end - t_start)
